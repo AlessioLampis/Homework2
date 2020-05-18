@@ -131,4 +131,6 @@ void TestFlangerAudioProcessorEditor::sliderValueChanged(Slider *slider)
         processor.set_depth(DepthSlider.getValue());
     else if (slider == &FeedbackSlider)
         processor.set_feedback(FeedbackSlider.getValue());
+    else if (slider== &FuncSlider)
+        processor.set_feedback(FuncSlider.getValue());
 }

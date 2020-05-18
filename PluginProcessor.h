@@ -1,16 +1,10 @@
-/*
-  ==============================================================================
 
-    This file was auto-generated!
-
-    It contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
-*/
 
 #pragma once
 
 #include <JuceHeader.h>
+#include "MidiProcessor.h"
+
 
 //==============================================================================
 /**
@@ -59,8 +53,10 @@ public:
     void set_sweep(float val);
     void set_depth(int val);
     void set_feedback(int val);
+    void set_func(int val);
     
 private:
+    MidiProcessor midiProcessor;
     //==============================================================================
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TestFlangerAudioProcessor)
@@ -83,6 +79,7 @@ private:
     float depth_; // Amount of delayed signal mixed with
     // original (0-1)
     float feedback_; // Amount of feedback (>= 0, < 1)
+    float func_; //waveform selected (1,2,3)
     //********************************************************************************************//
 
     

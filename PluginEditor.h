@@ -25,6 +25,7 @@ public:
     //==============================================================================
     void paint (Graphics&) override;
     void resized() override;
+    void sliderValueChanged(Slider* slider) override;
 
 private:
     // This reference is provided as a quick way for your editor to
@@ -46,7 +47,5 @@ private:
     Slider FuncSlider;
     Label FuncLabel;
     
-    void sliderValueChanged(Slider* slider) override;
-    
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TestFlangerAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TestFlangerAudioProcessorEditor);
 };
