@@ -16,7 +16,7 @@
 //==============================================================================
 /**
 */
-class TestFlangerAudioProcessorEditor  : public AudioProcessorEditor,  private Slider::Listener
+class TestFlangerAudioProcessorEditor  : public AudioProcessorEditor,  public Slider::Listener
 {
 public:
     TestFlangerAudioProcessorEditor (TestFlangerAudioProcessor&);
@@ -25,27 +25,22 @@ public:
     //==============================================================================
     void paint (Graphics&) override;
     void resized() override;
+
     void sliderValueChanged(Slider* slider) override;
+    Slider FrequencySlider;
+    Label FrequencyLabel;
+    Slider SweepWidthSlider;
+    Label SweepWidthLabel;
+    Slider DepthSlider;
+    Label DepthLabel;
+    Slider FeedbackSlider;
+    Label FeedbackLabel;
+    ToggleButton LFO_function;
 
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
-    TestFlangerAudioProcessor& processor;
+    TestFlangerAudioProcessor& processor;  
     
-    Slider FrequencySlider;
-    Label FrequencyLabel;
-
-    Slider SweepWidthSlider;
-    Label SweepWidthLabel;
-
-    Slider DepthSlider;
-    Label DepthLabel;
-
-    Slider FeedbackSlider;
-    Label FeedbackLabel;
-
-    Slider FuncSlider;
-    Label FuncLabel;
-    
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TestFlangerAudioProcessorEditor);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TestFlangerAudioProcessorEditor)
 };

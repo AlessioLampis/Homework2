@@ -12,78 +12,45 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-TestFlangerAudioProcessorEditor::TestFlangerAudioProcessorEditor(TestFlangerAudioProcessor& p)
-    : AudioProcessorEditor(&p), processor(p)
+TestFlangerAudioProcessorEditor::TestFlangerAudioProcessorEditor (TestFlangerAudioProcessor& p)
+    : AudioProcessorEditor (&p), processor (p)
 {
-    // FREQUENCY
-    FrequencySlider.setSliderStyle (Slider::SliderStyle::Rotary);
-    FrequencySlider.setRange (100.0f, 10000.0f, 10.0f);
-    FrequencySlider.setTextBoxStyle (Slider::TextBoxAbove, true, 100, 20);
+    // Make sure that before the constructor has finished, you've set the
+    // editor's size to whatever you need it to be.
+    
+    FrequencySlider.setRange (0.1f, 10.0f, 0.1f);
+    FrequencySlider.setTextBoxStyle (Slider::TextBoxRight, false, 100, 20);
     FrequencySlider.addListener(this);
-    FrequencySlider.setColour(Slider::ColourIds::thumbColourId, Colours::greenyellow);
-    FrequencyLabel.setFont(10.0f);
     FrequencyLabel.setText ("LFO frequency", dontSendNotification);
-    FrequencyLabel.setJustificationType(Justification::centredBottom);
-    FrequencyLabel.attachToComponent(&FrequencySlider, false);
-
+    
     addAndMakeVisible (FrequencySlider);
     addAndMakeVisible (FrequencyLabel);
-
-    // SWEEP WIDTH
-    SweepWidthSlider.setSliderStyle(Slider::SliderStyle::Rotary);
-    SweepWidthSlider.setRange (0.0, 1.0, 0.01F);
-    SweepWidthSlider.setTextBoxStyle (Slider::TextBoxAbove, false, 50, 20);
+    
+    SweepWidthSlider.setRange (0.0f, 1.0f, 0.01f);
+    SweepWidthSlider.setTextBoxStyle (Slider::TextBoxRight, false, 100, 20);
     SweepWidthSlider.addListener(this);
-    SweepWidthSlider.setColour(Slider::ColourIds::thumbColourId, Colours::greenyellow);
     SweepWidthLabel.setText ("Sweep", dontSendNotification);
-    SweepWidthLabel.setJustificationType(Justification::centredBottom);
-    SweepWidthLabel.attachToComponent(&SweepWidthSlider, false);
-
+    
     addAndMakeVisible (SweepWidthSlider);
     addAndMakeVisible (SweepWidthLabel);
     
-    //DEPTH SLIDER
-    DepthSlider.setSliderStyle(Slider::SliderStyle::Rotary);
-    DepthSlider.setRange (0.0, 1.0);
-    DepthSlider.setTextBoxStyle (Slider::TextBoxAbove, false, 50, 20);
+    DepthSlider.setRange (0.0f, 1.0f);
+    DepthSlider.setTextBoxStyle (Slider::TextBoxRight, false, 100, 20);
     DepthSlider.addListener(this);
-    DepthSlider.setColour(Slider::ColourIds::thumbColourId, Colours::greenyellow);
     DepthLabel.setText ("Depth", dontSendNotification);
-    DepthLabel.setJustificationType(Justification::centredBottom);
-    DepthLabel.attachToComponent(&DepthSlider, false);
-
     
     addAndMakeVisible (DepthSlider);
     addAndMakeVisible (DepthLabel);
     
-    //FEEDBACK SLIDER
-    FeedbackSlider.setSliderStyle(Slider::SliderStyle::Rotary);
-    FeedbackSlider.setRange (0.0, 1.0);
-    FeedbackSlider.setTextBoxStyle (Slider::TextBoxAbove, false, 50, 20);
+    FeedbackSlider.setRange (0.0f, 1.0f);
+    FeedbackSlider.setTextBoxStyle (Slider::TextBoxRight, false, 100, 20);
     FeedbackSlider.addListener(this);
-    FeedbackSlider.setColour(Slider::ColourIds::thumbColourId, Colours::greenyellow);
     FeedbackLabel.setText ("Feedback", dontSendNotification);
-    FeedbackLabel.setJustificationType(Justification::centredBottom);
-    FeedbackLabel.attachToComponent(&FeedbackSlider, false);
     
     addAndMakeVisible (FeedbackSlider);
     addAndMakeVisible (FeedbackLabel);
-
-    //FUNC SLIDER
-    FuncSlider.setSliderStyle(Slider::SliderStyle::Rotary);
-    FuncSlider.setRange(0.0, 3.0, 1.0f);
-    FuncSlider.setTextBoxStyle(Slider::TextBoxAbove, false, 50, 20);
-    FuncSlider.addListener(this);
-    FuncSlider.setColour(Slider::ColourIds::thumbColourId, Colours::greenyellow);
-    FuncLabel.setText("Waveform", dontSendNotification);
-    FuncLabel.setJustificationType(Justification::centredBottom);
-    FuncLabel.attachToComponent(&FuncSlider, false);
-
-
-    addAndMakeVisible(FuncSlider);
-    addAndMakeVisible(FuncLabel);
-
-    setSize (800, 500);
+    
+    setSize (400, 300);
 }
 
 TestFlangerAudioProcessorEditor::~TestFlangerAudioProcessorEditor()
@@ -98,39 +65,36 @@ void TestFlangerAudioProcessorEditor::paint (Graphics& g)
 
     g.setColour (Colours::white);
     g.setFont (30.0f);
-    g.drawFittedText ("Flanger", getLocalBounds(), Justification::centredTop, 12);
+    g.drawFittedText ("Flanger Effect", getLocalBounds(), Justification::centredTop, 12);
 }
 
 void TestFlangerAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
-    const auto startY = 0.45f;
-    const auto startX = 0.45f;
-    const auto dialWidth = 0.1f;
-    const auto dialHeight = 0.2f;
-
-    FrequencySlider.setBoundsRelative (startX + dialWidth*3, startY + 0.1f, dialWidth, dialHeight);
     
-    SweepWidthSlider.setBoundsRelative(startX + dialWidth *3, startY - 0.1f, dialWidth, dialHeight);
+    FrequencyLabel.setBounds (10, 40, 90, 20);
+    FrequencySlider.setBounds (100, 40, getWidth() - 110, 20);
     
-    DepthSlider.setBoundsRelative(startX - dialWidth * 3, startY - 0.1f, dialWidth, dialHeight);
+    SweepWidthLabel.setBounds (10, 80, 90, 20);
+    SweepWidthSlider.setBounds (100, 80, getWidth() - 110, 20);
     
-    FeedbackSlider.setBoundsRelative (startX, startY, dialWidth, dialHeight);
-
-    FuncSlider.setBoundsRelative(startX - dialWidth* 3, startY + 0.1f, dialWidth, dialHeight);
+    DepthLabel.setBounds (10, 120, 90, 20);
+    DepthSlider.setBounds (100, 120, getWidth() - 110, 20);
+    
+    FeedbackLabel.setBounds (10, 160, 90, 20);
+    FeedbackSlider.setBounds (100, 160, getWidth() - 110, 20);
 }
 
 void TestFlangerAudioProcessorEditor::sliderValueChanged(Slider *slider)
 {
     if (slider == &FrequencySlider)
-        processor.set_freq(FrequencySlider.getValue());
+        processor.frequency_ = FrequencySlider.getValue();
     else if (slider == &SweepWidthSlider)
-        processor.set_sweep(SweepWidthSlider.getValue());
+        processor.sweepWidth_ = SweepWidthSlider.getValue();
     else if (slider == &DepthSlider)
         processor.set_depth(DepthSlider.getValue());
     else if (slider == &FeedbackSlider)
         processor.set_feedback(FeedbackSlider.getValue());
-    else if (slider== &FuncSlider)
-        processor.set_feedback(FuncSlider.getValue());
 }
+

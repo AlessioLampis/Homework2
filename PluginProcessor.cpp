@@ -10,6 +10,10 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "math.h"
+# define M_PI           3.14159265358979323846  /* pi */
+# define M_PI_2         1.57079632679489661923  /* pi/2 */
+#include "signal.h"
 
 //==============================================================================
 TestFlangerAudioProcessor::TestFlangerAudioProcessor()
@@ -102,10 +106,12 @@ void TestFlangerAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     // 2) Initialize the variables that we are going to need in processBlock function: 
     // the buffer, the write and read pointer, the delay value
     
+    mSampleRate = sampleRate;
     delayBufLength = 100000;
-    
-    dpw = 0; //write index
-    //write init value for sliders?
+    delayBuffer.setSize(getTotalNumOutputChannels(), delayBufLength);
+    dpr = delayBufLength/2;
+    dpw = 1; //write index
+    pr = delayBufLength / 2;
     //********************************************************************************************//
 
 }
@@ -143,40 +149,33 @@ bool TestFlangerAudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
 
 void TestFlangerAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
-    buffer.clear();
-    midiProcessor.process(midiMessages);
-    
-    //********************************************************************************************//
-    // 3) Delay line implementation
-    for (int i = 0; i < numSamples; ++i){
-    const float in = channelData[i];
-    float interpolatedSample = 0.0;
-    // Recalculate the read pointer position with respect to
-    // the write pointer.
-    float currentDelay = sweepWidth_ * (0.5f + 0.5f * sinf(2.0 * 3.14 * ph));
-    // Subtract 3 samples to the delay pointer to make sure
-    // we have enough previous samples to interpolate with
-    float dpr = fmodf((float)dpw - (float)(currentDelay * getSampleRate()) + (float)delayBufLength - 3.0, (float)delayBufLength);
-    // Use linear interpolation to read a fractional index
-    // into the buffer.
-    float fraction = dpr - floorf(dpr);
-    int previousSample = (int)floorf(dpr);
-    int nextSample = (previousSample + 1) % delayBufLength;
-    interpolatedSample = fraction*delayData[nextSample] + (1.0f-fraction)*delayData[previousSample];
-    // Store the current information in the delay buffer.
-    // With feedback, what we read is included in what gets
-    // stored in the buffer, otherwise it’s just a simple
-    // delay line of the input signal.
-    delayData[dpw] = in + (interpolatedSample * feedback_);
-    // Increment the write pointer at a constant rate.
-    if (++dpw >= delayBufLength)
-    dpw = 0;
-    // Store the output in the buffer, replacing the input
-    channelData[i] = in + depth_ * interpolatedSample;
-    // Update the LFO phase, keeping it in the range 0-1
-    ph += frequency_*inverseSampleRate;
-    if(ph >= 1.0)
-    ph -= 1.0;
+    int numSamples = buffer.getNumSamples();
+    float* channelOutDataL = buffer.getWritePointer(0);
+    float* channelOutDataR = buffer.getWritePointer(1);
+    const float* channelInData = buffer.getReadPointer(0);
+    for (int i = 0; i < numSamples; ++i)
+    {
+        float currentDelay = 5000 * sweepWidth_ * (sinf(2.0 * M_PI * frequency_));
+
+        if (++dpw >= delayBufLength)
+            dpw = 0;
+        if (++dpr >= delayBufLength)
+            dpr = 0;
+        if (currentDelay > delayBufLength / 2 - 1)
+            currentDelay = delayBufLength / 2 - 1;
+        if (currentDelay < -(delayBufLength / 2 - 1))
+            currentDelay = -(delayBufLength / 2 - 1);
+        pr = dpr + currentDelay;
+        if (pr >= delayBufLength)
+            pr -= delayBufLength;
+        if (pr < 0)
+            pr += delayBufLength;
+
+        delayBuffer.setSample(0, dpw, channelInData[i]);
+        float sampleFlange = delayBuffer.getSample(0, pr);
+        float sampleDirect = delayBuffer.getSample(0, dpr);
+        channelOutDataL[i] = sampleFlange + sampleDirect ;
+        channelOutDataR[i] = sampleFlange + sampleDirect ;
     }
     //********************************************************************************************//
 
@@ -210,9 +209,9 @@ void TestFlangerAudioProcessor::setStateInformation (const void* data, int sizeI
 
 //==============================================================================
 // This creates new instances of the plugin..
+
 void TestFlangerAudioProcessor::set_freq(float val)
 {
-    //DBG("Frequency: " << val);
     frequency_ = val;
 }
 void TestFlangerAudioProcessor::set_sweep(float val)
@@ -228,10 +227,6 @@ void TestFlangerAudioProcessor::set_feedback(int val)
     feedback_ = val;
 }
 
-void TestFlangerAudioProcessor::set_func(int val)
-{
-    func_ = val;
-}
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new TestFlangerAudioProcessor();
