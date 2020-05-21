@@ -20,7 +20,6 @@ TestFlangerAudioProcessorEditor::TestFlangerAudioProcessorEditor (TestFlangerAud
     FrequencySlider.setColour(Slider::ColourIds::thumbColourId, Colours::greenyellow);
     FrequencyLabel.attachToComponent(&FrequencySlider, false);
     FrequencyLabel.setFont(10.0f);
-
     FrequencySlider.setRange(0.10f, 10.00f, 0.01f);
     FrequencySlider.setTextBoxStyle(Slider::TextBoxBelow, true, 50, 20);
     FrequencySlider.addListener(this);
@@ -55,7 +54,7 @@ TestFlangerAudioProcessorEditor::TestFlangerAudioProcessorEditor (TestFlangerAud
     DepthLabel.setJustificationType(Justification::centredBottom);
     DepthLabel.attachToComponent(&DepthSlider, false);
 
-    DepthSlider.setRange(0.0f, 1.0f, 0.1f);
+    DepthSlider.setRange(0.00f, 1.00f, 0.01f);
     DepthSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 50, 20);
     DepthSlider.addListener(this);
     DepthLabel.setText("Depth", dontSendNotification);
