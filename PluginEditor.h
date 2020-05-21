@@ -27,6 +27,8 @@ public:
     void resized() override;
 
     void sliderValueChanged(Slider* slider) override;
+
+
     Slider FrequencySlider;
     Label FrequencyLabel;
     Slider SweepWidthSlider;
@@ -35,6 +37,9 @@ public:
     Label DepthLabel;
     Slider FeedbackSlider;
     Label FeedbackLabel;
+    Slider FuncSlider;
+    Label FuncLabel;
+
     ToggleButton LFO_function;
 
 private:

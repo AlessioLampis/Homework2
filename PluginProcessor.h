@@ -59,12 +59,14 @@ public:
     void set_sweep(float val);
     void set_depth(int val);
     void set_feedback(int val);
+    void set_func(int val);
+
     float frequency_; // Frequency of the LFO
     float sweepWidth_; // Width of the LFO in samples
     float depth_; // Amount of delayed signal mixed with
     // original (0-1)
     float feedback_; // Amount of feedback (>= 0, < 1)
-    
+    float func_; //waveform of the LFO
 private:
     AudioSampleBuffer delayBuffer;
     //==============================================================================
