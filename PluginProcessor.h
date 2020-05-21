@@ -54,41 +54,26 @@ public:
     //==============================================================================
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
-    
-    void set_freq(float val);
-    void set_sweep(float val);
-    void set_depth(int val);
-    void set_feedback(int val);
-    void set_func(int val);
 
-    float frequency_; // Frequency of the LFO
-    float sweepWidth_; // Width of the LFO in samples
-    float depth_; // Amount of delayed signal mixed with
-    // original (0-1)
-    float feedback_; // Amount of feedback (>= 0, < 1)
-    float func_; //waveform of the LFO
+    float frequency_;           // Frequency of the LFO
+    float sweepWidth_;          // Width of the LFO in samples
+    float depth_;               // Amount of delayed signal mixed with original (0-1)
+    float feedback_;            // Amount of feedback (>= 0, < 1)
+    int func_;
+    int invertedMode;
+    
 private:
-    AudioSampleBuffer delayBuffer;
-    //==============================================================================
-    
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TestFlangerAudioProcessor)
-
- 
+    AudioSampleBuffer delayBufferL;
+    AudioSampleBuffer delayBufferR;
+   
     // Variables whose values are set externally:
     int mSampleRate{ 44100 };
-    int numSamples; // How many audio samples to process
-    float *channelData; // Array of samples, length numSamples
-    float *delayData; // Our own circular buffer of samples
-    int delayBufLength; // Length of our delay buffer in samples
-    int dpw; // Write pointer into the delay buffer
-    int dpr;
-    int pr;
-    float ph; // Current LFO phase, always between 0-1
-    float inverseSampleRate; // 1/f_s, where f_s = sample rate
+    int numSamples;             // How many audio samples to process
+    int delayBufLength;         // Length of our delay buffer in samples
+    int dpw;                    // Write pointer into the delay buffer
+    float ph;                   // Current LFO phase, always between 0-1
+    float currentDelayL;
+    float currentDelayR;    
     
-    // User-adjustable effect parameters:
-
-    //********************************************************************************************//
-
-    
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TestFlangerAudioProcessor)
 };

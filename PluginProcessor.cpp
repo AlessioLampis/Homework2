@@ -98,22 +98,23 @@ void TestFlangerAudioProcessor::changeProgramName (int index, const String& newN
 
 //==============================================================================
 void TestFlangerAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
-{
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
-    
-    //********************************************************************************************//
-    // 2) Initialize the variables that we are going to need in processBlock function: 
-    // the buffer, the write and read pointer, the delay value
-    
+{   
     mSampleRate = sampleRate;
     delayBufLength = 100000;
-    delayBuffer.setSize(getTotalNumOutputChannels(), delayBufLength);
-    dpr = delayBufLength/2;
+    delayBufferL.setSize(getTotalNumOutputChannels(), delayBufLength);
+    delayBufferR.setSize(getTotalNumOutputChannels(), delayBufLength);
+    delayBufferL.clear();
+    delayBufferR.clear();
     dpw = 1; //write index
-    pr = delayBufLength / 2;
-    //********************************************************************************************//
-
+    currentDelayL = 0.0;
+    currentDelayR = 0.0;
+    ph = 0.0;
+    func_ = 0;
+    frequency_ = 0.1;
+    depth_ = 0.0;
+    feedback_ = 0.0;
+    sweepWidth_ = 0.0;
+    invertedMode = 0;
 }
 
 void TestFlangerAudioProcessor::releaseResources()
@@ -153,33 +154,56 @@ void TestFlangerAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBu
     float* channelOutDataL = buffer.getWritePointer(0);
     float* channelOutDataR = buffer.getWritePointer(1);
     const float* channelInData = buffer.getReadPointer(0);
+    
+    
     for (int i = 0; i < numSamples; ++i)
     {
-        float currentDelay = 5000 * sweepWidth_ * (sinf(2.0 * M_PI * frequency_));
+        float interpolatedSampleL = 0.0;
+        float interpolatedSampleR = 0.0;
+
+        if (invertedMode == 1) {
+            depth_= -depth_;
+        }
+
+        if (func_ == 0) {
+            //sinusoidal LFO function
+            currentDelayL = sweepWidth_ * (0.5f + 0.5f * sinf(2.0 * M_PI * ph));                                               
+            currentDelayR = sweepWidth_ * (0.5f + 0.5f * sinf(2.0 * M_PI * ph - M_PI_2));
+        }
+        else if (func_ == 1) {
+            //triangular LFO function
+            currentDelayL = sweepWidth_ * (0.5f + 0.5f * static_cast <float>(acos(sin(2 * M_PI* ph)) / M_PI_2));             
+            currentDelayR = sweepWidth_ * (0.5f + 0.5f * static_cast <float>(acos(sin(2 * M_PI * ph - M_PI_2)) / M_PI_2)); 
+        } 
+
+        // Subtract 3 samples to the delay pointer to make sure we have enough previous samples to interpolate with
+        float dprL = fmodf((float)dpw - (float)(currentDelayL * mSampleRate / 1000) + (float)delayBufLength - 3.0, (float)delayBufLength);
+        float dprR = fmodf((float)dpw - (float)(currentDelayR * mSampleRate / 1000) + (float)delayBufLength - 3.0, (float)delayBufLength);
+
+        // Use linear interpolation to read a fractional index into the buffer.
+        float fractionL = dprL - floorf(dprL);
+        float fractionR = dprR - floorf(dprR);
+        int previousSampleL = (int)floorf(dprL);
+        int previousSampleR = (int)floorf(dprR);
+        int nextSampleL = (previousSampleL + 1) % delayBufLength;
+        int nextSampleR = (previousSampleR + 1) % delayBufLength;
+
+        interpolatedSampleL = fractionL * delayBufferL.getSample(0, nextSampleL) + (1.0f - fractionL) * delayBufferL.getSample(0, previousSampleL);
+        interpolatedSampleR = fractionR * delayBufferR.getSample(0, nextSampleR) + (1.0f - fractionR) * delayBufferR.getSample(0, previousSampleR);
+                
+        delayBufferL.setSample(0, dpw, channelInData[i] + interpolatedSampleL * feedback_);
+        delayBufferR.setSample(0, dpw, channelInData[i] + interpolatedSampleR * feedback_);
+
+        channelOutDataL[i] = interpolatedSampleL * depth_ + channelInData[i] * (1 - depth_) ;
+        channelOutDataR[i] = interpolatedSampleR * depth_ + channelInData[i] * (1 - depth_) ;
 
         if (++dpw >= delayBufLength)
             dpw = 0;
-        if (++dpr >= delayBufLength)
-            dpr = 0;
-        if (currentDelay > delayBufLength / 2 - 1)
-            currentDelay = delayBufLength / 2 - 1;
-        if (currentDelay < -(delayBufLength / 2 - 1))
-            currentDelay = -(delayBufLength / 2 - 1);
-        pr = dpr + currentDelay;
-        if (pr >= delayBufLength)
-            pr -= delayBufLength;
-        if (pr < 0)
-            pr += delayBufLength;
 
-        delayBuffer.setSample(0, dpw, channelInData[i]);
-        float sampleFlange = delayBuffer.getSample(0, pr);
-        float sampleDirect = delayBuffer.getSample(0, dpr);
-        channelOutDataL[i] = sampleFlange + sampleDirect ;
-        channelOutDataR[i] = sampleFlange + sampleDirect ;
-    }
-    //********************************************************************************************//
-
-    
+        ph += frequency_ * (1 / static_cast<float>( mSampleRate));
+        if (ph >= 1.0)
+            ph -= 1.0;
+    }    
 }
 
 //==============================================================================
@@ -207,25 +231,6 @@ void TestFlangerAudioProcessor::setStateInformation (const void* data, int sizeI
     // whose contents will have been created by the getStateInformation() call.
 }
 
-//==============================================================================
-// This creates new instances of the plugin..
-
-void TestFlangerAudioProcessor::set_freq(float val)
-{
-    frequency_ = val;
-}
-void TestFlangerAudioProcessor::set_sweep(float val)
-{
-    sweepWidth_ = val;
-}
-void TestFlangerAudioProcessor::set_depth(int val)
-{
-    depth_ = val;
-}
-void TestFlangerAudioProcessor::set_feedback(int val)
-{
-    feedback_ = val;
-}
 
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
