@@ -161,8 +161,11 @@ void TestFlangerAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBu
         float interpolatedSampleL = 0.0;
         float interpolatedSampleR = 0.0;
 
-        if (invertedMode == 1) {
+        if (invertedMode == 1 && depth_> 0) {
             depth_= -depth_;
+        }
+        else if (invertedMode == 0 && depth_ < 0) {
+            depth_ = -depth_;
         }
 
         if (func_ == 0) {
@@ -190,13 +193,18 @@ void TestFlangerAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBu
 
         interpolatedSampleL = fractionL * delayBufferL.getSample(0, nextSampleL) + (1.0f - fractionL) * delayBufferL.getSample(0, previousSampleL);
         interpolatedSampleR = fractionR * delayBufferR.getSample(0, nextSampleR) + (1.0f - fractionR) * delayBufferR.getSample(0, previousSampleR);
-                
+
         delayBufferL.setSample(0, dpw, channelInData[i] + interpolatedSampleL * feedback_);
         delayBufferR.setSample(0, dpw, channelInData[i] + interpolatedSampleR * feedback_);
 
-        channelOutDataL[i] = interpolatedSampleL * depth_ + channelInData[i] * (1 - depth_) ;
-        channelOutDataR[i] = interpolatedSampleR * depth_ + channelInData[i] * (1 - depth_) ;
-
+        if (invertedMode == 0) {
+            channelOutDataL[i] = interpolatedSampleL * depth_ + channelInData[i] * (1 - depth_);
+            channelOutDataR[i] = interpolatedSampleR * depth_ + channelInData[i] * (1 - depth_);
+        }
+        if (invertedMode == 1) {
+            channelOutDataL[i] = interpolatedSampleL * depth_ + channelInData[i] * (1 + depth_);
+            channelOutDataR[i] = interpolatedSampleR * depth_ + channelInData[i] * (1 + depth_);
+        }
         if (++dpw >= delayBufLength)
             dpw = 0;
 
